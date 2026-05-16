@@ -80,7 +80,7 @@
 	}
 	function isMsgSizeRight(m)
 	{
-	if(m.length>=30)
+	if(m.length>=30 || m.length===0)
 	return false;
 	else
 	return true;
@@ -94,11 +94,10 @@
 	}
 	async function fireSendPost()
 	{
-	
-	
+		
 	if(isMsgSizeRight(document.getElementById('sendMsgTxt').value) && !isEmptyKey(document.getElementById('sendKey').value))
 	{
-	const dataTBP =   document.getElementById('sendMsgTxt').value + "\n"+ document.getElementById('sendKey').value;
+	const dataTBP =   document.getElementById('sendMsgTxt').value + "\n"+ document.getElementById('sendKey').value + "\n" + new Date().toISOString().split('T')[0];
 	const response = await fetch('http://localhost:8080/anon/home',{
     method: "POST", 
     headers: {
@@ -115,13 +114,48 @@ const text = await response.text();
 console.log('message posted with given key.');
 alert('Sent!');
 clear();
-document.getElementById("msgListForm").innerHTML = text;
+//document.getElementById("msgListForm").innerHTML = text;
+console.log(text);
 	
 	}
 	else
-	alert('Either msg is bigger than 30 letters or empty key.');
+	alert('Incorrect message length or empty key.');
 	document.getElementById("sendMsgTxt").focus();
 	}
+	
+	
+	
+	async function fireFetchPost()
+	{
+	
+	if(!isEmptyKey(document.getElementById('fetchKeyTxt').value) && document.getElementById('fetchDate').value!='')
+	{
+	const dataTBP =   "F" + "\n"+ document.getElementById('fetchKeyTxt').value + "\n" + new Date().toISOString().split('T')[0];
+	const response = await fetch('http://localhost:8080/anon/home',{
+    method: "POST", 
+    headers: {
+      "Content-Type": "text/html",
+	  "Access-Control-Allow-Origin": "*",
+    },
+    body: dataTBP, 
+  });
+   if (!response.ok) {
+  throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+const text = await response.text();
+
+console.log('Fetching messages with given key & date.');
+clear();
+document.getElementById("msgListForm").innerHTML = text;
+console.log("Messages received!");
+	
+	}
+	else
+	alert('Empty key or date.');
+	
+	document.getElementById("fetchKeyTxt").focus();
+	}
+	
 	</script>
 	
 </head>
@@ -147,9 +181,9 @@ document.getElementById("msgListForm").innerHTML = text;
     <div class="form-container">
         <h2>Fetch Messages</h2>
         <form>
-            <input type="password" placeholder="Key" aria-label="Access Code">
-            <input type="date" aria-label="Select Date">
-            <button id="fetchMsgBtn" type="button">Fetch</button>			
+            <input id="fetchKeyTxt" type="password" placeholder="Key" aria-label="Access Code">
+            <input id="fetchDate" type="date" aria-label="Select Date">
+            <button id="fetchMsgBtn" type="button" onclick="fireFetchPost().catch((error) => console.error('Error:', error));">Fetch</button>			
         </form>
     </div>
 
