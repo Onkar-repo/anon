@@ -1,10 +1,44 @@
 import java.io.*;
-import jakarta.servlet.*; // Use javax.servlet for Tomcat 9 and earlier
+import jakarta.servlet.*; 
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.WebServlet;
+import java.time.LocalDate;
+import java.util.*;
+
 @WebServlet("/home")
 public class Anon extends HttpServlet {
-
+	static String allMessages[] = new String[50]; // tempraroy storage before implementing database structure.
+	static String allKeys[] = new String[50];
+	static String allDates[] = new String[50];
+	static int i=-1;
+	
+	static StringBuilder getFinalMessageTable(List<String> l)
+	{
+	System.out.println(l);
+		String tableHead = "<table border='1' cellpadding='10'><tr><th align='center' valign='top'>Message</th>";
+		StringBuilder tableMessages = new StringBuilder("");
+		String tableTail="</table>";
+		tableMessages.append(tableHead);
+		
+	for(String data:l)
+		tableMessages.append(getHTMLTableRow(data));
+	
+	tableMessages.append(tableTail);
+	System.out.println(tableMessages);
+	return tableMessages;	
+	}
+	static List<String> getSelectedMessages(String k, String d)
+	{
+		System.out.println(k + "&" + d + " entering getSelectedMessages");
+		List<String> sm = new LinkedList<String>();
+		for(int t=0;t<=i;++t)
+		{
+			if(allKeys[t].equals(k) && allDates[t].equals(d))
+				sm.add(allMessages[t]);
+		}
+		System.out.println(k + "&" + d);
+		return sm;
+	}
 	static String getHTMLTableRow(String sb)
 	{
 		return "</tr><tr><td align='center' valign='top'>"+ sb +"</td></tr>";
@@ -28,20 +62,29 @@ if (request.getRequestDispatcher(path) == null) {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {			
-	String message, key;
+	String message, key,dateISO;
     try (BufferedReader reader = request.getReader()) {
         message = reader.readLine();
-        key = reader.readLine();   
+        key = reader.readLine();
+		dateISO = reader.readLine();
     }
-		
-		
-		String tableHead = "<table border='1' cellpadding='10'><tr><th align='center' valign='top'>Message</th>";
-		//String tableTail="</table>";
-		
 		response.setContentType("text/html");
 		response.setHeader("Access-Control-Allow-Origin", "*");
 		PrintWriter out = response.getWriter();	
-		out.println(tableHead+getHTMLTableRow(message));
+		
+		System.out.println(message);
+		if(!message.equals("F"))
+		{
+		allMessages[++i]=message;
+		allKeys[i]=key;
+		allDates[i]=dateISO;
+		out.println("Message Added!");
+		}
+		else
+		{
+			System.out.println("inside else as a receving mode");
+		out.println(getFinalMessageTable(getSelectedMessages(key, dateISO)));
+		}
 	}
 	
 	
