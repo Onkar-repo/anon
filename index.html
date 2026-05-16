@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anon</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #CAC4CE;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+		.list-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #242038;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #725AC1;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            text-align: center;
+            color: #333;
+        }
+    </style>
+	
+	<script>
+	function clear()
+	{
+	document.getElementById('sendMsgTxt').value="";
+	document.getElementById('sendKey').value="";
+	document.getElementById("sendMsgTxt").focus();
+	}
+	function isMsgSizeRight(m)
+	{
+	if(m.length>=30)
+	return false;
+	else
+	return true;
+	}
+	function isEmptyKey(k)
+	{
+	if(k.length===0)
+	return true;
+	else
+	return false;
+	}
+	async function fireSendPost()
+	{
+	
+	
+	if(isMsgSizeRight(document.getElementById('sendMsgTxt').value) && !isEmptyKey(document.getElementById('sendKey').value))
+	{
+	const dataTBP =   document.getElementById('sendMsgTxt').value + "\n"+ document.getElementById('sendKey').value;
+	const response = await fetch('http://localhost:8080/anon/home',{
+    method: "POST", 
+    headers: {
+      "Content-Type": "text/html",
+	  "Access-Control-Allow-Origin": "*",
+    },
+    body: dataTBP, 
+  });
+   if (!response.ok) {
+  throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+const text = await response.text();
+
+console.log('message posted with given key.');
+alert('Sent!');
+clear();
+document.getElementById("msgListForm").innerHTML = text;
+	
+	}
+	else
+	alert('Either msg bigger than 30 letters or empty key.');
+	document.getElementById("sendMsgTxt").focus();
+	}
+	</script>
+	
+</head>
+<body onLoad='document.getElementById("sendMsgTxt").focus();'>
+
+<!-- Heading -->
+    <div class="form-container">
+        <h2>ANON</h2>
+    </div>
+
+
+    <!-- First Form -->
+    <div class="form-container">
+        <h2>Send Messages</h2>
+        <form>
+            <input id="sendMsgTxt" type="text" placeholder="Message" aria-label="Username">
+            <input id="sendKey" type="password" placeholder="Key" aria-label="Password">
+            <button id="sendMsgBtn" type="button" onclick="fireSendPost().catch((error) => console.error('Error:', error));">Send</button>
+        </form>
+    </div>
+
+    <!-- Second Form -->
+    <div class="form-container">
+        <h2>Fetch Messages</h2>
+        <form>
+            <input type="password" placeholder="Key" aria-label="Access Code">
+            <input type="date" aria-label="Select Date">
+            <button id="fetchMsgBtn" type="button">Fetch</button>			
+        </form>
+    </div>
+
+
+<div class="list-container" id="listOfMessagesOnDate">
+        <h2>Fetched Messages</h2>
+		
+	
+		
+        <form id="msgListForm">
+		<!--
+           	<table border='1' cellpadding='10'>
+  <tr>
+    <th align="center" valign="top">Message</th>
+  </tr>
+
+  <tr>
+    <td align="center" valign="top">abcd</td>
+    </tr>
+	<tr>
+    <td align="center" valign="top">length</td>
+    </tr>
+	
+</table>
+-->
+        </form>
+    </div>
+
+
+</body>
+</html>
