@@ -72,10 +72,17 @@
     </style>
 	
 	<script>
+	function getLocalDate()
+	{
+	const now = new Date();
+	const offset = now.getTimezoneOffset() * 60000; 
+	const localISO = new Date(now - offset).toISOString().split('.')[0];
+	return localISO.slice(11,16);
+	}
 	function clearFetchSide()
 	{
 	document.getElementById('fetchKeyTxt').value="";
-	document.getElementById('fetchDate').value="";
+	document.getElementById("fetchDate").value=new Date().toISOString().split("T")[0];
 	document.getElementById("fetchKeyTxt").focus();
 	}
 	function clear()
@@ -104,7 +111,7 @@
 		
 	if(isMsgSizeRight(document.getElementById('sendMsgTxt').value) && !isEmptyKey(document.getElementById('sendKey').value))
 	{
-	const dataTBP =   document.getElementById('sendMsgTxt').value + "\n"+ document.getElementById('sendKey').value + "\n" + new Date().toISOString().split('T')[0];
+	const dataTBP =   document.getElementById('sendMsgTxt').value + " (" + getLocalDate() + ")"+ "\n"+ document.getElementById('sendKey').value + "\n" + new Date().toISOString().split('T')[0];
 	const response = await fetch('http://localhost:8080/anon/home',{
     method: "POST", 
     headers: {
