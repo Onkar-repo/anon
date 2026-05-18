@@ -4,6 +4,9 @@ import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.WebServlet;
 import java.time.LocalDate;
 import java.util.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
+
 
 @WebServlet("/home")
 public class Anon extends HttpServlet {
@@ -12,9 +15,25 @@ public class Anon extends HttpServlet {
 	static String allDates[] = new String[50];
 	static int i=-1;
 	
+	
+	static boolean isDate(String d)
+	{
+		final DateTimeFormatter ISO_DATE_FORMATTER = 
+        DateTimeFormatter.ISO_LOCAL_DATE.withResolverStyle(ResolverStyle.STRICT);
+		if (d == null || d.length() != 10) {
+            return false;
+        }
+        try {
+            LocalDate.parse(d, ISO_DATE_FORMATTER);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+		
+	}
 	static StringBuilder getFinalMessageTable(List<String> l)
 	{
-	System.out.println(l);
+	//System.out.println(l);
 		String tableHead = "<table border='1' cellpadding='10'><tr><th align='center' valign='top'>Message</th>";
 		StringBuilder tableMessages = new StringBuilder("");
 		String tableTail="</table>";
@@ -29,7 +48,7 @@ public class Anon extends HttpServlet {
 	}
 	static List<String> getSelectedMessages(String k, String d)
 	{
-		System.out.println(k + "&" + d + " entering getSelectedMessages");
+		//System.out.println(k + "&" + d + " entering getSelectedMessages");
 		List<String> sm = new LinkedList<String>();
 		for(int t=0;t<=i;++t)
 		{
@@ -73,8 +92,14 @@ if (request.getRequestDispatcher(path) == null) {
 		PrintWriter out = response.getWriter();	
 		
 		System.out.println(message);
+		if(message.equals("") || key.equals("") || !isDate(dateISO))
+		{
+			out.println("Incorrect input format.");
+			return;
+		}
 		if(!message.equals("F"))
 		{
+		
 		allMessages[++i]=message;
 		allKeys[i]=key;
 		allDates[i]=dateISO;
@@ -82,7 +107,7 @@ if (request.getRequestDispatcher(path) == null) {
 		}
 		else
 		{
-			System.out.println("inside else as a receving mode");
+			//System.out.println("inside else as a receving mode");
 		out.println(getFinalMessageTable(getSelectedMessages(key, dateISO)));
 		}
 	}
