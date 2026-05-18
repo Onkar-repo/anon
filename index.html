@@ -72,6 +72,12 @@
     </style>
 	
 	<script>
+	function clearFetchSide()
+	{
+	document.getElementById('fetchKeyTxt').value="";
+	document.getElementById('fetchDate').value="";
+	document.getElementById("fetchKeyTxt").focus();
+	}
 	function clear()
 	{
 	document.getElementById('sendMsgTxt').value="";
@@ -80,7 +86,8 @@
 	}
 	function isMsgSizeRight(m)
 	{
-	if(m.length>=30 || m.length===0)
+	
+	if((m.length>=30 && (m.split(" ").length-1)===0) || m.length===0)
 	return false;
 	else
 	return true;
@@ -148,6 +155,7 @@ console.log('Fetching messages with given key & date.');
 clear();
 document.getElementById("msgListForm").innerHTML = text;
 console.log("Messages received!");
+clearFetchSide();
 	
 	}
 	else
@@ -159,7 +167,7 @@ console.log("Messages received!");
 	</script>
 	
 </head>
-<body onLoad='document.getElementById("sendMsgTxt").focus();'>
+<body onLoad='document.getElementById("sendMsgTxt").focus(); document.getElementById("fetchDate").value=new Date().toISOString().split("T")[0];'>
 
 <!-- Heading -->
     <div class="form-container">
