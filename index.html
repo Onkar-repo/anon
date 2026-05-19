@@ -144,7 +144,7 @@ console.log(text);
 	
 	if(!isEmptyKey(document.getElementById('fetchKeyTxt').value) && document.getElementById('fetchDate').value!='')
 	{
-	const dataTBP =   "F" + "\n"+ document.getElementById('fetchKeyTxt').value + "\n" + new Date().toISOString().split('T')[0];
+	const dataTBP =   "F" + "\n"+ document.getElementById('fetchKeyTxt').value + "\n" + document.getElementById("fetchDate").value;
 	const response = await fetch('http://localhost:8080/anon/home',{
     method: "POST", 
     headers: {
