@@ -6,16 +6,82 @@ import java.time.LocalDate;
 import java.util.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
-
+import java.sql.*;
 
 @WebServlet("/home")
 public class Anon extends HttpServlet {
+	/*
 	static String allMessages[] = new String[50]; // tempraroy storage before implementing database structure.
 	static String allKeys[] = new String[50];
 	static String allDates[] = new String[50];
 	static int i=-1;
-	
-	
+	*/
+	static StringBuilder pullFromDatabase(String k, String d)
+	{
+		
+		String dbUrl = "jdbc:mysql://localhost:3306/world";
+        String user = "root";
+        String pass = "Qwerty@123";
+		 String sql = "SELECT dataMessage FROM datalist WHERE dataKey=? AND dataDate=?";
+		 String tableHead = "<table border='1' cellpadding='10'><tr><th align='center' valign='top'>Message</th>";
+		 String tableTail="</table>";
+		 StringBuilder tableMessages = new StringBuilder("");
+		 
+		 try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            try (Connection con = DriverManager.getConnection(dbUrl, user, pass);
+                 PreparedStatement pstmt = con.prepareStatement(sql)) {
+					 pstmt.setString(1,k);
+					 pstmt.setString(2,d);
+					 ResultSet rs = pstmt.executeQuery();
+					 tableMessages.append(tableHead);
+		
+                while (rs.next())
+                    tableMessages.append(getHTMLTableRow(rs.getString("dataMessage")));
+					
+				tableMessages.append(tableTail);
+				
+            }
+			catch (Exception e) {
+           System.out.println("Error: " + e.getMessage());
+        }
+		 }catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+		 }
+	return tableMessages;
+	}
+	static void pushToDatabase(String m, String k, String d)
+	{
+		String dbUrl = "jdbc:mysql://localhost:3306/world";
+        String user = "root";
+        String pass = "Qwerty@123";
+        String sql = "INSERT INTO datalist (dataMessage, dataKey, dataDate) VALUES (?, ?, ?)";
+		
+		try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            try (Connection con = DriverManager.getConnection(dbUrl, user, pass);
+                 PreparedStatement pstmt = con.prepareStatement(sql)) {
+                
+              
+                pstmt.setString(1, m);
+                pstmt.setString(2, k);
+                pstmt.setString(3, d);
+				
+				// Execute the update query
+                int rowsInserted = pstmt.executeUpdate();
+                
+                if (rowsInserted > 0) {
+                    System.out.println("message added successfully!");
+                } else {
+                    System.out.println("failed");
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+		
+		
+	}
 	static boolean isDate(String d)
 	{
 		final DateTimeFormatter ISO_DATE_FORMATTER = 
@@ -46,6 +112,7 @@ public class Anon extends HttpServlet {
 	System.out.println(tableMessages);
 	return tableMessages;	
 	}
+	/*
 	static List<String> getSelectedMessages(String k, String d)
 	{
 		//System.out.println(k + "&" + d + " entering getSelectedMessages");
@@ -58,6 +125,7 @@ public class Anon extends HttpServlet {
 		System.out.println(k + "&" + d);
 		return sm;
 	}
+	*/
 	static String getHTMLTableRow(String sb)
 	{
 		return "</tr><tr><td align='center' valign='top'>"+ sb +"</td></tr>";
@@ -99,16 +167,20 @@ if (request.getRequestDispatcher(path) == null) {
 		}
 		if(!message.equals("F"))
 		{
-		
+		pushToDatabase(message, key, dateISO);
+		/*
 		allMessages[++i]=message;
 		allKeys[i]=key;
 		allDates[i]=dateISO;
+		*/
 		out.println("Message Added!");
 		}
 		else
 		{
 			//System.out.println("inside else as a receving mode");
-		out.println(getFinalMessageTable(getSelectedMessages(key, dateISO)));
+		out.println(pullFromDatabase(key, dateISO));
+		//out.println(getFinalMessageTable(getSelectedMessages(key, dateISO)));
+		
 		}
 	}
 	
