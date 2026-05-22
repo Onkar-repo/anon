@@ -7,41 +7,70 @@ import java.util.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.sql.*;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+
+	/*
+	  //Hosting Server MariaDB Database Details
+	  //String dbUrl = "jdbc:mariadb://://ogkapps.info:3306/ogkapp9_world";
+      //String user = "ogkapp9_root";
+	  //String pass = "Hn5aXU+AG4JCk(w~";
+		*/
+	
 
 @WebServlet("/home")
 public class Anon extends HttpServlet {
-	/*
-	static String allMessages[] = new String[50]; // tempraroy storage before implementing database structure.
-	static String allKeys[] = new String[50];
-	static String allDates[] = new String[50];
-	static int i=-1;
-	*/
+	private static HikariDataSource dataSource = new HikariDataSource() ;
+	
+	@Override
+    public void init() throws ServletException{
+	HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:mysql://localhost:3306/world");
+        config.setUsername("root");
+        config.setPassword("Qwerty@123");
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
+        // Set pool sizing properties
+        config.setMaximumPoolSize(20);
+        config.setMinimumIdle(5);
+        config.setIdleTimeout(300000); // 5 minutes
+        config.setConnectionTimeout(30000); // 30 seconds
+
+        // Initialize the pool
+        config.copyStateTo(dataSource);
+		// forces hikari to lock configuration immediately
+		try{dataSource.getLoginTimeout();}
+		catch(Exception e)
+		{System.out.println("Error: " + e.getMessage());}
+		
+	}
 	static StringBuilder pullFromDatabase(String k, String d)
 	{
-		
-		String dbUrl = "jdbc:mysql://localhost:3306/world";
-        String user = "root";
-        String pass = "Qwerty@123";
-		 String sql = "SELECT dataMessage FROM datalist WHERE dataKey=? AND dataDate=?";
+	
+		String sql = "SELECT dataMessage FROM datalist WHERE dataKey=? AND dataDate=?";
 		 String tableHead = "<table border='1' cellpadding='10'><tr><th align='center' valign='top'>Message</th>";
 		 String tableTail="</table>";
 		 StringBuilder tableMessages = new StringBuilder("");
-		 
+		 tableMessages.append(tableHead);
 		 try{
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection con = DriverManager.getConnection(dbUrl, user, pass);
+         
+            try (Connection con = dataSource.getConnection();
                  PreparedStatement pstmt = con.prepareStatement(sql)) {
+					 
 					 pstmt.setString(1,k);
-					 pstmt.setString(2,d);
-					 ResultSet rs = pstmt.executeQuery();
-					 tableMessages.append(tableHead);
+				 pstmt.setString(2,d);
+				 				 
+		
+		
+		try(ResultSet rs = pstmt.executeQuery()){
 		
                 while (rs.next())
                     tableMessages.append(getHTMLTableRow(rs.getString("dataMessage")));
 					
 				tableMessages.append(tableTail);
-				
-            }
+		}
+			}
 			catch (Exception e) {
            System.out.println("Error: " + e.getMessage());
         }
@@ -50,16 +79,15 @@ public class Anon extends HttpServlet {
 		 }
 	return tableMessages;
 	}
+	
 	static void pushToDatabase(String m, String k, String d)
 	{
-		String dbUrl = "jdbc:mysql://localhost:3306/world";
-        String user = "root";
-        String pass = "Qwerty@123";
+
         String sql = "INSERT INTO datalist (dataMessage, dataKey, dataDate) VALUES (?, ?, ?)";
 		
 		try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            try (Connection con = DriverManager.getConnection(dbUrl, user, pass);
+          	
+            try (Connection con = dataSource.getConnection();
                  PreparedStatement pstmt = con.prepareStatement(sql)) {
                 
               
@@ -69,18 +97,15 @@ public class Anon extends HttpServlet {
 				
 				// Execute the update query
                 int rowsInserted = pstmt.executeUpdate();
-                
-                if (rowsInserted > 0) {
-                    System.out.println("message added successfully!");
-                } else {
-                    System.out.println("failed");
-                }
+                if (rowsInserted > 0) System.out.println("message added successfully!");
+                else System.out.println("failed");
+				
+				pstmt.close();
             }
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
+			e.printStackTrace();
         }
-		
-		
 	}
 	static boolean isDate(String d)
 	{
@@ -99,7 +124,7 @@ public class Anon extends HttpServlet {
 	}
 	static StringBuilder getFinalMessageTable(List<String> l)
 	{
-	//System.out.println(l);
+	System.out.println(l);
 		String tableHead = "<table border='1' cellpadding='10'><tr><th align='center' valign='top'>Message</th>";
 		StringBuilder tableMessages = new StringBuilder("");
 		String tableTail="</table>";
@@ -112,20 +137,7 @@ public class Anon extends HttpServlet {
 	System.out.println(tableMessages);
 	return tableMessages;	
 	}
-	/*
-	static List<String> getSelectedMessages(String k, String d)
-	{
-		//System.out.println(k + "&" + d + " entering getSelectedMessages");
-		List<String> sm = new LinkedList<String>();
-		for(int t=0;t<=i;++t)
-		{
-			if(allKeys[t].equals(k) && allDates[t].equals(d))
-				sm.add(allMessages[t]);
-		}
-		System.out.println(k + "&" + d);
-		return sm;
-	}
-	*/
+	
 	static String getHTMLTableRow(String sb)
 	{
 		return "</tr><tr><td align='center' valign='top'>"+ sb +"</td></tr>";
@@ -150,7 +162,9 @@ if (request.getRequestDispatcher(path) == null) {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {			
 	String message, key,dateISO;
+	System.out.println("enterd doPost");
     try (BufferedReader reader = request.getReader()) {
+		System.out.println("started reading post request data.");
         message = reader.readLine();
         key = reader.readLine();
 		dateISO = reader.readLine();
@@ -168,18 +182,14 @@ if (request.getRequestDispatcher(path) == null) {
 		if(!message.equals("F"))
 		{
 		pushToDatabase(message, key, dateISO);
-		/*
-		allMessages[++i]=message;
-		allKeys[i]=key;
-		allDates[i]=dateISO;
-		*/
+	
 		out.println("Message Added!");
 		}
 		else
 		{
-			//System.out.println("inside else as a receving mode");
+			System.out.println("inside else as a receving mode");
 		out.println(pullFromDatabase(key, dateISO));
-		//out.println(getFinalMessageTable(getSelectedMessages(key, dateISO)));
+
 		
 		}
 	}
