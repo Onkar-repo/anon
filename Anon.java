@@ -13,7 +13,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 	/*
 	  //Hosting Server MariaDB Database Details
-	  //String dbUrl = "jdbc:mariadb://://ogkapps.info:3306/ogkapp9_world";
+	  //String dbUrl = "jdbc:mariadb://ogkapps.info:3306/ogkapp9_world";
       //String user = "ogkapp9_root";
 	  //String pass = "Hn5aXU+AG4JCk(w~";
 		*/
@@ -21,15 +21,22 @@ import com.zaxxer.hikari.HikariDataSource;
 
 @WebServlet("/home")
 public class Anon extends HttpServlet {
-	private static HikariDataSource dataSource = new HikariDataSource() ;
+	private static HikariDataSource dataSource ;
 	
 	@Override
     public void init() throws ServletException{
 	HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mysql://localhost:3306/world");
+        /*
+		config.setJdbcUrl("jdbc:mariadb://localhost:3306/world");
         config.setUsername("root");
         config.setPassword("Qwerty@123");
-        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        config.setDriverClassName("org.mariadb.jdbc.Driver");
+		*/
+		config.setJdbcUrl("jdbc:mariadb://localhost:3306/ogkapp9_world");
+        config.setUsername("ogkapp9_root");
+        config.setPassword("Hn5aXU+AG4JCk(w~");  // temporarily hardcoded password just for testing
+
+        config.setDriverClassName("org.mariadb.jdbc.Driver");
 
         // Set pool sizing properties
         config.setMaximumPoolSize(20);
@@ -38,11 +45,12 @@ public class Anon extends HttpServlet {
         config.setConnectionTimeout(30000); // 30 seconds
 
         // Initialize the pool
-        config.copyStateTo(dataSource);
+		dataSource = new HikariDataSource(config); 
+        //config.copyStateTo(dataSource);
 		// forces hikari to lock configuration immediately
-		try{dataSource.getLoginTimeout();}
-		catch(Exception e)
-		{System.out.println("Error: " + e.getMessage());}
+		//try{dataSource.getLoginTimeout();}
+		//catch(Exception e)
+		//{System.out.println("Error: " + e.getMessage());}
 		
 	}
 	static StringBuilder pullFromDatabase(String k, String d)
