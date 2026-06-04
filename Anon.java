@@ -13,7 +13,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 	/*
 	  //Hosting Server MariaDB Database Details
-	  //String dbUrl = "jdbc:mariadb://ogkapps.info:3306/ogkapp9_world";
+	  //String dbUrl = "jdbc:mariadb://localhost:3306/ogkapp9_world";
       //String user = "ogkapp9_root";
 	  //String pass = "Hn5aXU+AG4JCk(w~";
 		*/
@@ -32,25 +32,18 @@ public class Anon extends HttpServlet {
         config.setPassword("Qwerty@123");
         config.setDriverClassName("org.mariadb.jdbc.Driver");
 		*/
+		
 		config.setJdbcUrl("jdbc:mariadb://localhost:3306/ogkapp9_world");
         config.setUsername("ogkapp9_root");
         config.setPassword("Hn5aXU+AG4JCk(w~");  // temporarily hardcoded password just for testing
-
         config.setDriverClassName("org.mariadb.jdbc.Driver");
-
-        // Set pool sizing properties
         config.setMaximumPoolSize(20);
         config.setMinimumIdle(5);
         config.setIdleTimeout(300000); // 5 minutes
         config.setConnectionTimeout(30000); // 30 seconds
 
-        // Initialize the pool
-		dataSource = new HikariDataSource(config); 
-        //config.copyStateTo(dataSource);
-		// forces hikari to lock configuration immediately
-		//try{dataSource.getLoginTimeout();}
-		//catch(Exception e)
-		//{System.out.println("Error: " + e.getMessage());}
+       	dataSource = new HikariDataSource(config); 
+       
 		
 	}
 	static StringBuilder pullFromDatabase(String k, String d)
@@ -61,16 +54,13 @@ public class Anon extends HttpServlet {
 		 String tableTail="</table>";
 		 StringBuilder tableMessages = new StringBuilder("");
 		 tableMessages.append(tableHead);
-		 try{
-         
+		 
             try (Connection con = dataSource.getConnection();
                  PreparedStatement pstmt = con.prepareStatement(sql)) {
 					 
 					 pstmt.setString(1,k);
 				 pstmt.setString(2,d);
-				 				 
-		
-		
+						
 		try(ResultSet rs = pstmt.executeQuery()){
 		
                 while (rs.next())
@@ -82,9 +72,7 @@ public class Anon extends HttpServlet {
 			catch (Exception e) {
            System.out.println("Error: " + e.getMessage());
         }
-		 }catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-		 }
+		 
 	return tableMessages;
 	}
 	
@@ -93,7 +81,7 @@ public class Anon extends HttpServlet {
 
         String sql = "INSERT INTO datalist (dataMessage, dataKey, dataDate) VALUES (?, ?, ?)";
 		
-		try {
+		
           	
             try (Connection con = dataSource.getConnection();
                  PreparedStatement pstmt = con.prepareStatement(sql)) {
@@ -103,14 +91,13 @@ public class Anon extends HttpServlet {
                 pstmt.setString(2, k);
                 pstmt.setString(3, d);
 				
-				// Execute the update query
+				
                 int rowsInserted = pstmt.executeUpdate();
                 if (rowsInserted > 0) System.out.println("message added successfully!");
                 else System.out.println("failed");
 				
-				pstmt.close();
             }
-        } catch (Exception e) {
+         catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
         }
